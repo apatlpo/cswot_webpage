@@ -1,0 +1,28 @@
+name: pynsitu
+channels:
+  - pyviz
+  - conda-forge
+  - defaults
+dependencies:
+  - jupyterlab
+  - xarray
+  - zarr
+  - netcdf4
+  - geopandas
+  - hvplot
+  - geoviews
+  - seaborn
+  - cartopy
+  - geoviews
+  - folium
+  - cmocean
+  - xhistogram
+  - xrft
+  - gsw
+  - pyinterp
+  - pytide
+  - pyTMD
+  - pip
+  - pip:
+    - pynmea2
+    - geojsoncontour
