@@ -4,8 +4,8 @@ import pandas as pd
 from datetime import datetime
 
 # data repository
-data_dir = "./data"
-#data_dir = "/home/datawork-lops-osi/aponte/cswot"
+#data_dir = "./data"
+data_dir = "/home/datawork-lops-osi/aponte/cswot"
 
 deg2rad = np.pi/180
 now = lambda: pd.to_datetime(datetime.utcnow())

@@ -7,7 +7,7 @@ import pandas as pd
 #from ftplib import FTP
 #from datetime import datetime,timedelta
 
-from .common import now, data_dir
+from common import now, data_dir
 
 # load commands
 def load_cmems_commands():

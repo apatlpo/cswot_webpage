@@ -7,7 +7,7 @@ import pandas as pd
 from datetime import datetime
 import urllib.request
 
-from .common import now, data_dir
+from common import now, data_dir
 
 # ------------------------------------- Carthe ----------------------------
 
@@ -40,10 +40,8 @@ def fetch_carthe(timestamp=True, verbose=True, alldata=True):
 if __name__ == "__main__":
 
     import sys
-    print(sys.argv)
     if len(sys.argv)>1 and "all" in sys.argv:
         print("Downloading all data")
-        #fetch_carthe(timestamp=True, alldata=True) # once
+        fetch_carthe(timestamp=True, alldata=True) # once
     else:
-        #fetch_carthe(timestamp=True, alldata=False)
-        pass
+        fetch_carthe(timestamp=True, alldata=False)
