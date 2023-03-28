@@ -45,6 +45,7 @@ __pycache__/
 
 # logins
 *.login
+keys/
 
-# dask
-dask-worker-space
+# data
+data/
