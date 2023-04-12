@@ -7,17 +7,7 @@ import pandas as pd
 #from ftplib import FTP
 #from datetime import datetime,timedelta
 
-from common import now, data_dir
-
-# load commands
-def load_cmems_commands():
-    """load cmems commands (includes login/pwd)"""
-    with open("keys/cmems.yaml", "r") as stream:
-        try:
-            coms = yaml.safe_load(stream)
-        except yaml.YAMLError as exc:
-            print(exc)
-    return coms
+from common import now, data_dir, load_keys
 
 def download_variable(variable, start=None, end=None):
     """ load one variables """
@@ -40,7 +30,8 @@ def download_variable(variable, start=None, end=None):
     start = str(start.floor("1D"))
     end = str(end.floor("1D")).replace("00:00:00", "23:59:59")
 
-    coms = load_cmems_commands()
+    #coms = load_cmems_commands()
+    coms = load_keys()["cmems"]
 
     file_out = 'cmems_'+variable+'_'+start[0:10]+'.nc'
 

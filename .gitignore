@@ -1,4 +1,6 @@
+keys/
 out.html
+data/
 
 clean~
 clean
@@ -45,7 +47,3 @@ __pycache__/
 
 # logins
 *.login
-keys/
-
-# data
-data/

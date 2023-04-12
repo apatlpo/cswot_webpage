@@ -14,12 +14,10 @@ python download_cmems.py
 
 # update drifter data
 conda activate pynsitu
-python download_carthe.py
+python download_drifters.py
 
 # create html
 #python generate_html.py
-
-# send html to dropbox / gdrive
 
 date
 
