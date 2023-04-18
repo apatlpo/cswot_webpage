@@ -54,7 +54,7 @@ for e in ["large", "south", "central", "north"]:
     dt = pd.Timedelta("1H")
     #end = pd.to_datetime(datetime.datetime.now()).ceil(dt)
     end = max([d[0].time.max() for _, d in drifters.items()]).ceil(dt)
-    trail = "5D"
+    trail = "34H"
 
     # clean up folder
     print_dir = "/Users/aponte/tmp/figs_"+e

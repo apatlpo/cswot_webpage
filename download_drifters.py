@@ -60,7 +60,7 @@ if __name__ == "__main__":
         fetch_carthe(timestamp=True, alldata=False)
 
     # svp
-    # manual download
+    # manual download from gdrive
 
     # trefle
     fetch_trefle()
