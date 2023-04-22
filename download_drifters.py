@@ -1,6 +1,6 @@
 import os
+import sys
 from glob import glob
-import yaml
 
 import numpy as np
 import pandas as pd
@@ -8,9 +8,16 @@ import pandas as pd
 from datetime import datetime
 import urllib.request
 
-from common import now, data_dir, load_keys
-#from decode_iridium_novatech_class import NOVATECH
-import inovatech as inov
+import paramiko
+from scp import SCPClient
+
+from common import now, data_dir, load_keys, imeis
+
+try:
+    #from decode_iridium_novatech_class import NOVATECH
+    import inovatech as inov
+except:
+    inov = None
 
 # ------------------------------------- Carthe ----------------------------
 
@@ -46,21 +53,89 @@ def fetch_trefle():
     email = load_keys()["email"] # read credentials
     ntech.Read_Ifremer_Inbox_mail(email["login"], email["password"])
 
+def fetch_imeis():
+    """ from imeis database fetch all txt files """
+    # connect to server via datarmor
+    ssh, scp = connect_coriolis()
+
+    # list available remote imeis
+    ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(f"ls {coriolis_dir}")
+    remote_imeis = [l.strip("\n") for l in ssh_stdout.readlines()]
+
+    for k, k_imeis in imeis.items():
+        for imei in k_imeis:
+            print(f"Downloadling {k} / {imei}")
+            
+            # create local directory if not present
+            local_dir = os.path.join(data_dir, "imeis", imei)        
+            if not os.path.isdir(local_dir):
+                os.mkdir(local_dir)
+                
+            # list local files
+            local_files = glob(os.path.join(local_dir, "*.txt"))
+            local_files_core = [f.split("/")[-1] for f in local_files]
+
+            # list remote files
+            if imei in remote_imeis:
+                ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command("ls "+os.path.join(coriolis_dir, imei, "ascii/*.txt"))
+                remote_files = sorted([l.strip("\n") for l in ssh_stdout.readlines()])
+                remote_files_core = [f.split("/")[-1] for f in remote_files]
+
+                if len(remote_files)>0:
+                    # find files that have not been copied
+                    for rf, rp in zip(remote_files_core, remote_files):
+                        if rf not in local_files_core:
+                            scp.get(rp, local_path=os.path.join(local_dir, rf), preserve_times=True)
+                            #print(f"Downloading {rf}")
+                        else:
+                            pass
+                            #print(f"{rf} is already here")
+
+    scp.close()
+    ssh.close()
+
+
+coriolis_dir = "/home/datawork-coriolis-intranet-s/exp/co01/co0113/co011306/co01130601/co0113060101/imei"
+def connect_coriolis():
+    """ open connection to datarmor, need pulse secure to be turned on"""
+
+    # connect to datarmor
+    ifr = load_keys()["ifremer"]
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect("datarmor", username=ifr["login"], password=ifr["password"])
+
+    # create scp object
+    scp = SCPClient(ssh.get_transport())
+    #sftp = ssh.open_sftp()
+    # SSHException: Channel closed.
+    # https://stackoverflow.com/questions/28317347/python-paramiko-sshexception-channel-closed
+    
+    return ssh, scp
 
 # ------------------------------------- .... ----------------------------
 
 if __name__ == "__main__":
 
-    # carthe
-    import sys
-    if len(sys.argv)>1 and "all" in sys.argv:
-        print("Downloading all data")
-        fetch_carthe(timestamp=True, alldata=True) # once
-    else:
-        fetch_carthe(timestamp=True, alldata=False)
+    # carthe: does not work with pulsesecure
+    if "carthe" in sys.argv:
+        print("Download Carthe drifters")
+        if "all" in sys.argv:
+            print("   ... all data")
+            fetch_carthe(timestamp=True, alldata=True) # once
+        else:
+            fetch_carthe(timestamp=True, alldata=False)
+        
 
     # svp
+    #print("Download shom svp drifters")
     # manual download from gdrive
 
     # trefle
-    fetch_trefle()
+    #fetch_trefle()
+
+    # imeis: requires pulsesecure
+    if "imeis" in sys.argv:
+        print("Download from imeis")
+        fetch_imeis()
+

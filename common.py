@@ -21,6 +21,73 @@ data_dir = "./data"
 deg2rad = np.pi/180
 now = lambda: pd.to_datetime(datetime.utcnow())
 
+# imeis of interest
+imeis = dict(
+    shom=[
+        300534060015760,
+        300534060211000, 
+        300534062470440,
+        300534062476700,
+        300534060017440,
+        300534060211410,
+        300534062471390,
+        300534062479690,
+        300534060017750,
+        300534060216070,
+        300534062472380,
+        300534062479710,
+        300534060112360, 
+        300534060218400,
+        300534062472690,
+        300534060113380,
+        300534060315840,
+        300534062472810,
+        300534060114360,
+        300534060316870,
+        300534062474750,
+        300534060011620,
+        300534060116350,
+        300534061170360,
+        300534062475680,
+        300534060012760,
+        300534060117220,
+        300534061175350,
+        300534062475700,
+    ],
+    ogs = [
+        300534064106800,
+        300534064104920,
+        300534064104890,
+        300534064103920,
+        300534064103890,
+        300534064109890,
+        300534064109870,
+        300534064108950,
+        300534064107900,
+        300534064107880,
+        300534060553240,
+        300125061690570,   
+    ],
+    scripps = [
+        300534061395960,
+        300534061395970,
+        300534061395980,
+        300534061398320,
+        300534061398370,
+        300534061398910,
+        300534064300460,
+        300534064300510,
+    ],
+    bgc = [
+        300534061492130,
+    ],
+)
+# converts imeis to strings
+for k, v in imeis.items():
+    imeis[k] = [str(i) for i in v]
+
+# --------------------------- utils ----------------------------------------------
+
 def load_keys():
     with open("keys/keys.yaml", "r") as stream:
         try:
@@ -28,8 +95,6 @@ def load_keys():
         except yaml.YAMLError as exc:
             print(exc)
     return keys
-
-# --------------------------- utils ----------------------------------------------
 
 def delete_folder(folder):
     for filename in os.listdir(folder):
@@ -181,6 +246,42 @@ def load_trefle():
     
     return df
 
+# ------------------------------------- from imeis ----------------------------
+
+def load_imei(imei):
+    """ load all files associated with one imei """
+    local_dir = os.path.join(data_dir, "imeis", imei)
+    files = sorted(glob(os.path.join(local_dir, imei+"*.txt")))
+    #files = sorted(glob(os.path.join(local_dir, "*.txt")))
+    # clean up
+    #clean=True
+    #if clean:
+    #    files_gd = sorted(glob(os.path.join(local_dir, imei+"*.txt")))
+    #    for f in files:
+    #        if f not in files_gd:
+    #            os.remove(f)
+    #    files = files_gd
+    if not files:
+        return None
+    df = (pd.concat([pd.read_csv(f, parse_dates=["date"]) for f in files], axis=0)
+          .rename(columns=dict(date="time", platform_code="id"))
+          .set_index("id")
+    )
+    df["time"] = df["time"].dt.tz_localize(None)
+    return df
+
+def load_imeis(imeis):
+    """ load a list of emails and concatenate data into a single dataframe """
+    print(f"  loading {len(imeis)} imeis")
+    D = [load_imei(i) for i in imeis]
+    D = [d for d in D if d is not None]
+    if not D:
+        return None
+    df = pd.concat(D, axis=0)
+    # filter out old or bad data
+    df = df.loc[ df.time>pd.Timestamp('2023-03-28 09:00') ]
+    df = df.loc[ (df.latitude<45.) | (df.longitude>0.) ]
+    return df
 
 # ------------------------------------- dropbox ----------------------------
 
@@ -190,16 +291,52 @@ def load_trefle():
 
 # ------------------------------------- swot tracks ------------------------------
 
-try:
-    from mitequinox.utils import load_swot_tracks
-    from shapely.geometry import Polygon
-    import geopandas as gpd
-    import matplotlib.pyplot as plt
-    import cartopy.crs as ccrs
+from shapely.geometry import Polygon
+import geopandas as gpd
+import matplotlib.pyplot as plt
+import cartopy.crs as ccrs
 
-    tracks = load_swot_tracks()
-except:
-    tracks = None
+# path to swot tracks
+tracks_dir = "/Users/aponte/Data/swot"
+
+def load_swot_tracks(phase="calval", resolution=None, bbox=None, **kwargs):
+    """Load SWOT tracks
+
+    Parameters
+    ----------
+    phase: str, optional
+        "calval" or "science"
+    resolution: str, optional
+        Specify resolution, for example "10s", default is "30s"
+    """
+    
+    #
+    files = glob(os.path.join(tracks_dir, "*.shp"))
+    files = [f for f in files if phase in f]
+    if resolution is not None:
+        files = [f for f in files if resolution in f]
+    dfiles = {f.split("_")[-1].split(".")[0]: f for f in files}
+    out = {key: gpd.read_file(f, **kwargs) for key, f in dfiles.items()}
+
+    if bbox is None:
+        return out
+
+    central_lon = (bbox[0] + bbox[1]) * 0.5
+    central_lat = (bbox[2] + bbox[3]) * 0.5
+
+    polygon = Polygon(
+        [
+            (bbox[0], bbox[2]),
+            (bbox[1], bbox[2]),
+            (bbox[1], bbox[3]),
+            (bbox[0], bbox[3]),
+            (bbox[0], bbox[2]),
+        ]
+    )
+    out = {key: gpd.clip(gdf, polygon) for key, gdf in out.items()}
+
+    return out
+
 
 def plot_swot_tracks(bbox, ax=None, figsize=(10,10), fig=None, **kwargs):
 
@@ -213,6 +350,7 @@ def plot_swot_tracks(bbox, ax=None, figsize=(10,10), fig=None, **kwargs):
                        (bbox[0], bbox[2]),
                       ])
     #poly_gdf = gpd.GeoDataFrame([1], geometry=[polygon], crs=world.crs)
+    tracks = load_swot_tracks()
     gdf = tracks["swath"]
     gdf_clipped = gpd.clip(gdf, polygon)
 
@@ -266,14 +404,15 @@ def plot_trails(t, e, drifters, trail="5D", savefig=None, figsize=(7,7)):
                    .loc[:t]
             )
             # trail
-            ax.plot(_df.longitude, _df.latitude, color="0.8", transform=crs)
+            ax.plot(_df.longitude, _df.latitude, color="0.8", transform=crs, zorder=2)
             _df = _df.loc[t-pd.Timedelta(trail):]
-            H[drlabel].append(ax.plot(_df.longitude, _df.latitude, **dr[1], transform=crs))            
+            H[drlabel].append(ax.plot(_df.longitude, _df.latitude, **dr[1], transform=crs, zorder=3))
             #
             if not _df.empty:
                 ax.scatter(_df.iloc[-1].longitude, _df.iloc[-1].latitude, 
-                           s=30, marker="x", color="k",
+                           s=20, marker="o", color="k",
                            transform=crs,
+                           zorder=4,
                           )
 
     ax.legend([h[0][0] for label, h in H.items()], [label for label, h in H.items()])
