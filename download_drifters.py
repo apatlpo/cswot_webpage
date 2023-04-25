@@ -1,5 +1,5 @@
-import os
-import sys
+import os, sys
+from shutil import copyfile
 from glob import glob
 
 import numpy as np
@@ -54,7 +54,8 @@ def fetch_trefle():
     ntech.Read_Ifremer_Inbox_mail(email["login"], email["password"])
 
 def fetch_imeis():
-    """ from imeis database fetch all txt files """
+    """ from imeis database fetch all txt files, via ssh
+    """
     # connect to server via datarmor
     ssh, scp = connect_coriolis()
 
@@ -94,6 +95,41 @@ def fetch_imeis():
     scp.close()
     ssh.close()
 
+def fetch_imeis_ifr():
+    """ from imeis database fetch all txt files, assumes coriolis disks are
+    accessible
+    """
+
+    # list available remote imeis    
+    remote_imeis = [i for i in os.listdir(coriolis_dir) if "300" in i]
+
+    for k, k_imeis in imeis.items():
+        for imei in k_imeis:
+            print(f"Downloadling {k} / {imei}")
+            
+            # create local directory if not present
+            local_dir = os.path.join(data_dir, "imeis", imei)        
+            if not os.path.isdir(local_dir):
+                os.mkdir(local_dir)
+                
+            # list local files
+            local_files = glob(os.path.join(local_dir, "*.txt"))
+            local_files_core = [f.split("/")[-1] for f in local_files]
+
+            # list remote files
+            if imei in remote_imeis:
+                remote_files = glob(os.path.join(coriolis_dir, imei, "ascii/*.txt"))
+                remote_files_core = [f.split("/")[-1] for f in remote_files]
+
+                if len(remote_files)>0:
+                    # find files that have not been copied
+                    for rf, rp in zip(remote_files_core, remote_files):
+                        if rf not in local_files_core:
+                            copyfile(rp , os.path.join(local_dir, rf))
+                            #print(f"Downloading {rf}")
+                        else:
+                            pass
+                            #print(f"{rf} is already here")
 
 coriolis_dir = "/home/datawork-coriolis-intranet-s/exp/co01/co0113/co011306/co01130601/co0113060101/imei"
 def connect_coriolis():
