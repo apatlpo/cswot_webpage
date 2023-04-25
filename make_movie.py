@@ -1,12 +1,15 @@
-import os
-import sys
+import os, sys
+
+#import subprocess
+from subprocess import check_output, STDOUT
 
 import pandas as pd
 import matplotlib.pyplot as plt
 
 import common as co
 
-print_dir_root = "/Users/aponte/tmp/"
+#print_dir_root = "/Users/aponte/tmp/"
+print_dir_root = "./"
 
 # https://boundingbox.klokantech.com
 extents = dict(
@@ -70,10 +73,7 @@ t0 = pd.Timestamp('2023-03-28 09:00') # first carthe deployment
 dt = pd.Timedelta("1H")
 trail = "34H"
 
-#e = "large"
-#e = "south"
-#e = "central"
-#e = "north"
+i_start = dict(large=0, south=190, central=80, north=0)
 
 #for e in ["south", "central", "north"]:
 for e in ["large", "south", "central", "north"]:
@@ -93,6 +93,10 @@ for e in ["large", "south", "central", "north"]:
 
     i = 0
     with plt.ioff():
+        # skips some time steps
+        while i<i_start[e]:
+            t+=dt
+            i+=1
         #while i<=5: # dev !
         while t<=end:
             savefig = os.path.join(print_dir, f"{i:04d}.png")
@@ -106,5 +110,12 @@ for e in ["large", "south", "central", "north"]:
                             )
             t+=dt
             i+=1
+
+    # generate movies, requires ffmpeg in environment, do with image2Movies otherwise
+    # https://stackoverflow.com/questions/24961127/how-to-create-a-video-from-images-with-ffmpeg
+    com = f'''ffmpeg -framerate 10 -pattern_type glob -i '{print_dir}/*.png' -c:v libx264 -pix_fmt yuv420p cswot_{e}.mp4'''
+    output = check_output(com, shell=True, stderr=STDOUT, universal_newlines=True).rstrip('\n')
+    #print(output)
+    print(f"movies should be ready: cswot_{e}.mp4'")
 
 
