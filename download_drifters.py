@@ -53,7 +53,7 @@ def fetch_trefle():
     email = load_keys()["email"] # read credentials
     ntech.Read_Ifremer_Inbox_mail(email["login"], email["password"])
 
-def fetch_imeis():
+def fetch_imeis_ssh():
     """ from imeis database fetch all txt files, via ssh
     """
     # connect to server via datarmor
@@ -95,7 +95,7 @@ def fetch_imeis():
     scp.close()
     ssh.close()
 
-def fetch_imeis_ifr():
+def fetch_imeis_local():
     """ from imeis database fetch all txt files, assumes coriolis disks are
     accessible
     """
@@ -173,5 +173,8 @@ if __name__ == "__main__":
     # imeis: requires pulsesecure
     if "imeis" in sys.argv:
         print("Download from imeis")
-        fetch_imeis()
+        if "ssh" in sys.argv:
+            fetch_imeis_ssh()
+        else:
+            fetch_imeis_local()
 
