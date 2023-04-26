@@ -297,7 +297,8 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 
 # path to swot tracks
-tracks_dir = "/Users/aponte/Data/swot"
+#tracks_dir = "/Users/aponte/Data/swot"
+tracks_dir = "/home/datawork-lops-osi/equinox/misc/swot"
 
 def load_swot_tracks(phase="calval", resolution=None, bbox=None, **kwargs):
     """Load SWOT tracks

@@ -177,4 +177,3 @@ if __name__ == "__main__":
             fetch_imeis_ssh()
         else:
             fetch_imeis_local()
-

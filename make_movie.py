@@ -1,7 +1,8 @@
 import os, sys
-
-#import subprocess
 from subprocess import check_output, STDOUT
+from glob import glob
+
+import dropbox
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -119,3 +120,18 @@ for e in ["large", "south", "central", "north"]:
     print(f"movies should be ready: cswot_{e}.mp4'")
 
 
+# push to dropbox
+mpg = sorted(glob("*.mp4"))
+
+# https://www.dropbox.com/developers/documentation/python#tutorial
+token = co.load_keys()["dropbox"]["token"]
+dbx = dropbox.Dropbox(token)
+#for entry in dbx.files_list_folder('Public/cswot_drifters').entries:
+#    print(entry.name)
+
+mode = dropbox.files.WriteMode.overwrite
+#data = b"Potential headline: Game 5 a nail-biter as Warriors inch out Cavs"
+for f in mpg:
+    with open(f) as fo:
+        data = fo.read()
+    dbx.files_upload(data, '/Public/cswot_drifters/'+f.split("/")[-1], mode)
