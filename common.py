@@ -266,6 +266,7 @@ def load_imei(imei):
     df = (pd.concat([pd.read_csv(f, parse_dates=["date"]) for f in files], axis=0)
           .rename(columns=dict(date="time", platform_code="id"))
           .set_index("id")
+          .drop_duplicates()
     )
     df["time"] = df["time"].dt.tz_localize(None)
     return df

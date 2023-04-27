@@ -7,6 +7,8 @@ import dropbox
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from datetime import datetime
+
 import common as co
 
 #print_dir_root = "/Users/aponte/tmp/"
@@ -71,6 +73,8 @@ def print_figs(overwrite):
     #dt = pd.Timedelta("30M")
     dt = pd.Timedelta("1H")
     trail = "34H"
+    now = pd.to_datetime(datetime.now()).ceil(dt)
+    now_minus_24h = now - pd.Timedelta("24h")
 
     i_start = dict(large=0, south=190, central=80, north=0)
 
@@ -99,7 +103,7 @@ def print_figs(overwrite):
             #while i<=5: # dev !
             while t<=end:
                 savefig = os.path.join(print_dir, f"{i:04d}.png")
-                if not overwrite and os.path.isfile(savefig):
+                if not overwrite and os.path.isfile(savefig) and t<now_minus_24h:
                     print(t, "  ... passing")
                 else:
                     print(t, "  printing")
