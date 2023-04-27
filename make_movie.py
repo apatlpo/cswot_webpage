@@ -21,7 +21,6 @@ extents = dict(
     central=[4., 6, 41, 42],
     north=[4.5, 6.5, 42, 43.2],
 )
-<<<<<<< Updated upstream
 regions = list(extents)
 
 def print_figs(overwrite):
@@ -159,5 +158,5 @@ if __name__=="__main__":
 
     generate_mpg()
 
-    push_dropbox()
+    #push_dropbox()
 
