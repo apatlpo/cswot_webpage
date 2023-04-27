@@ -21,6 +21,7 @@ extents = dict(
     central=[4., 6, 41, 42],
     north=[4.5, 6.5, 42, 43.2],
 )
+<<<<<<< Updated upstream
 regions = list(extents)
 
 def print_figs(overwrite):
@@ -142,7 +143,7 @@ def push_dropbox():
     mode = dropbox.files.WriteMode.overwrite
     #data = b"Potential headline: Game 5 a nail-biter as Warriors inch out Cavs"
     for f in mpg:
-        with open(f) as fo:
+        with open(f, 'rb') as fo:
             data = fo.read()
         dbx.files_upload(data, '/Public/cswot_drifters/'+f.split("/")[-1], mode)
 
@@ -159,3 +160,4 @@ if __name__=="__main__":
     generate_mpg()
 
     push_dropbox()
+
