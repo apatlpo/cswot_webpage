@@ -14,7 +14,8 @@ python download_drifters.py carthe all imeis
 
 # make movie
 rm *.mp4
-python make_movie.py
+#python make_movie.py 
+python make_movie.py 
 
 # temporary: converts notebook to python script
 #jupyter nbconvert --to python generate_html.ipynb

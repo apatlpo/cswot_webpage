@@ -75,6 +75,7 @@ def print_figs(overwrite):
     trail = "34H"
     now = pd.to_datetime(datetime.now()).ceil(dt)
     now_minus_24h = now - pd.Timedelta("24h")
+    now_minus_48h = now - pd.Timedelta("48h")
 
     i_start = dict(large=0, south=190, central=80, north=0)
 
@@ -103,7 +104,7 @@ def print_figs(overwrite):
             #while i<=5: # dev !
             while t<=end:
                 savefig = os.path.join(print_dir, f"{i:04d}.png")
-                if not overwrite and os.path.isfile(savefig) and t<now_minus_24h:
+                if not overwrite and os.path.isfile(savefig) and t<now_minus_48h:
                     print(t, "  ... passing")
                 else:
                     print(t, "  printing")
