@@ -131,6 +131,34 @@ def fetch_imeis_local():
                             pass
                             #print(f"{rf} is already here")
 
+def browse_imeis_local():
+    """ from imeis database browse all txt files, assumes coriolis disks are
+    accessible
+    """
+
+    # list available remote imeis    
+    remote_imeis = [i for i in os.listdir(coriolis_dir) if "300" in i]
+
+    for k, k_imeis in imeis.items():
+        for imei in k_imeis:
+            print(f"Browsing {k} / {imei}")
+            
+            # list remote files
+            if imei in remote_imeis:
+                remote_files = glob(os.path.join(coriolis_dir, imei, "ascii/*.txt"))
+                remote_files_core = [f.split("/")[-1] for f in remote_files]
+
+                if len(remote_files)>0:
+                    # inspect last data file
+                    f = remote_files[-1]
+                    df = (pd.read_csv(f, parse_dates=["date"])
+                        .rename(columns=dict(date="time", platform_code="id"))
+                        .set_index("id")
+                        .drop_duplicates()
+                    )
+                    df["time"] = df["time"].dt.tz_localize(None)
+                    print(df)
+
 coriolis_dir = "/home/datawork-coriolis-intranet-s/exp/co01/co0113/co011306/co01130601/co0113060101/imei"
 def connect_coriolis():
     """ open connection to datarmor, need pulse secure to be turned on"""
@@ -175,5 +203,7 @@ if __name__ == "__main__":
         print("Download from imeis")
         if "ssh" in sys.argv:
             fetch_imeis_ssh()
+        elif "browse" in sys.argv:
+            browse_imeis_local()
         else:
             fetch_imeis_local()
