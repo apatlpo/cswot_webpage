@@ -145,7 +145,7 @@ def browse_imeis_local():
             
             # list remote files
             if imei in remote_imeis:
-                remote_files = glob(os.path.join(coriolis_dir, imei, "ascii/*.txt"))
+                remote_files = sorted(glob(os.path.join(coriolis_dir, imei, "ascii/*.txt")))
                 remote_files_core = [f.split("/")[-1] for f in remote_files]
 
                 if len(remote_files)>0:
@@ -153,11 +153,13 @@ def browse_imeis_local():
                     f = remote_files[-1]
                     df = (pd.read_csv(f, parse_dates=["date"])
                         .rename(columns=dict(date="time", platform_code="id"))
-                        .set_index("id")
                         .drop_duplicates()
                     )
                     df["time"] = df["time"].dt.tz_localize(None)
-                    print(df)
+                    df = df.sort_values("time")
+                    print(f)
+                    print(df.iloc[-1]["time"])
+                    #print(df[["time", "id", "longitude", "latitude"]].iloc[-1])
 
 coriolis_dir = "/home/datawork-coriolis-intranet-s/exp/co01/co0113/co011306/co01130601/co0113060101/imei"
 def connect_coriolis():
