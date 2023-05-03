@@ -164,14 +164,15 @@ def load_cmems(V=None, last=False):
 
 # ------------------------------------- carthe ----------------------------
 
-def load_carthe(last=False, file=None):
+def load_carthe(source, last=False, file=None):
     """Load drifter data into a dict of dataframes"""
+    label = "carthe_"+source
     if last:
-        drifter_files = [find_latest_drifter_file("carthe")]
+        drifter_files = [find_latest_drifter_file(label)]
     elif file is not None:
         drifter_files = [file]
     else:
-        drifter_files = glob(os.path.join(data_dir, "carthe*.csv"))
+        drifter_files = glob(os.path.join(data_dir, label+"*.csv"))
     df = (pd.concat([pd.read_csv(f, parse_dates=["DeviceDateTime"])
                     for f in drifter_files])
           .drop_duplicates()

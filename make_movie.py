@@ -30,14 +30,17 @@ def print_figs(overwrite):
     print("Load data - start")
 
     # carthe
-    ca = co.load_carthe()
-    # add velocity
-    ca = (ca
-        .groupby("id").apply(lambda df: df.set_index("time").geo.compute_velocities())
-        .reset_index()
-        )
-    # manually get rid of early data
-    ca = ca.loc[ca.time>pd.Timestamp("2023/03/27")].set_index("id")
+    CA = {}
+    for s in ["lops", "cnr"]:
+        ca_lops = co.load_carthe(s)
+        # add velocity
+        ca = (ca
+            .groupby("id").apply(lambda df: df.set_index("time").geo.compute_velocities())
+            .reset_index()
+            )
+        # manually get rid of early data
+        ca = ca.loc[ca.time>pd.Timestamp("2023/03/27")].set_index("id")
+        CA[s] = ca
 
     # shom svp
     #svp = co.load_svp_shom()
@@ -58,7 +61,8 @@ def print_figs(overwrite):
     print("Load data - end")
 
     lw=2
-    drifters = dict(carthe=[ca, dict(color="gold", lw=lw)],
+    drifters = dict(carthe_lops=[CA["lops"], dict(color="gold", lw=lw)],
+                    carthe_cnr=[CA["cnr"], dict(color="darkkhaki", lw=lw)],
                     trefle=[trefle, dict(color="forestgreen", lw=lw)],
                     shom=[shom, dict(color="royalblue", lw=lw)],
                     ogs=[ogs, dict(color="orange", lw=lw)],

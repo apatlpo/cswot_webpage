@@ -21,10 +21,14 @@ except:
 
 # ------------------------------------- Carthe ----------------------------
 
-def fetch_carthe(timestamp=True, verbose=True, alldata=True):
+def fetch_carthe(source, timestamp=True, verbose=True, alldata=True):
     """fetch drifter data from pacific gyre website"""
 
-    url = load_keys()["carthe"]
+    # source: "lops", "cnr"
+
+    label = "carthe_"+source
+
+    url = load_keys()[label]
         
     if alldata:
         # 4 rows >= 20 min
@@ -34,7 +38,7 @@ def fetch_carthe(timestamp=True, verbose=True, alldata=True):
         tstamp = "_" + t.strftime("%Y%m%d_%H%M%S")
     else:
         tstamp = ""
-    file = os.path.join(data_dir, "carthe" + tstamp + ".csv")
+    file = os.path.join(data_dir, label + tstamp + ".csv")
 
     print(url)
     print(file)
@@ -52,6 +56,10 @@ def fetch_trefle():
     # load emails
     email = load_keys()["email"] # read credentials
     ntech.Read_Ifremer_Inbox_mail(email["login"], email["password"])
+
+# Coriolis data
+
+coriolis_dir = "/home/datawork-coriolis-intranet-s/exp/co01/co0113/co011306/co01130601/co0113060101/imei"
 
 def fetch_imeis_ssh():
     """ from imeis database fetch all txt files, via ssh
@@ -161,7 +169,6 @@ def browse_imeis_local():
                     print(df.iloc[-1]["time"])
                     #print(df[["time", "id", "longitude", "latitude"]].iloc[-1])
 
-coriolis_dir = "/home/datawork-coriolis-intranet-s/exp/co01/co0113/co011306/co01130601/co0113060101/imei"
 def connect_coriolis():
     """ open connection to datarmor, need pulse secure to be turned on"""
 
@@ -188,10 +195,11 @@ if __name__ == "__main__":
         print("Download Carthe drifters")
         if "all" in sys.argv:
             print("   ... all data")
-            fetch_carthe(timestamp=True, alldata=True) # once
+            for s in ["lops", "cnr"]:
+                fetch_carthe(s, timestamp=True, alldata=True) # once
         else:
-            fetch_carthe(timestamp=True, alldata=False)
-        
+            for s in ["lops", "cnr"]:
+                fetch_carthe(s, timestamp=True, alldata=False)
 
     # svp
     #print("Download shom svp drifters")
