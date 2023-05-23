@@ -32,7 +32,7 @@ def print_figs(overwrite):
     # carthe
     CA = {}
     for s in ["lops", "cnr"]:
-        ca_lops = co.load_carthe(s)
+        ca = co.load_carthe(s)
         # add velocity
         ca = (ca
             .groupby("id").apply(lambda df: df.set_index("time").geo.compute_velocities())
@@ -61,13 +61,13 @@ def print_figs(overwrite):
     print("Load data - end")
 
     lw=2
-    drifters = dict(carthe_lops=[CA["lops"], dict(color="gold", lw=lw)],
-                    carthe_cnr=[CA["cnr"], dict(color="darkkhaki", lw=lw)],
+    drifters = dict(carthe_lops=[CA["lops"], dict(color="orange", lw=lw)],
+                    carthe_cnr=[CA["cnr"], dict(color="orangered", lw=lw)],
                     trefle=[trefle, dict(color="forestgreen", lw=lw)],
-                    shom=[shom, dict(color="royalblue", lw=lw)],
-                    ogs=[ogs, dict(color="orange", lw=lw)],
+                    svp_shom=[shom, dict(color="royalblue", lw=lw)],
+                    ogs=[ogs, dict(color="turquoise", lw=lw)],
                     scripps=[scripps, dict(color="cadetblue", lw=lw)],
-                    bgc=[bgc, dict(color="coral", lw=lw)],
+                    bgc=[bgc, dict(color="limegreen", lw=lw)],
                 )
     # filter out empty fields
     drifters = {k: v for k, v in drifters.items() if v[0] is not None}
